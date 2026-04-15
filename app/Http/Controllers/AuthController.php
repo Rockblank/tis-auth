@@ -43,12 +43,46 @@ class AuthController extends Controller
                 'message' => 'wrong password'
             ], 400);
         }
-        $user->token = Str::random(36);
+        $jwt = $this->jwt(
+            [
+                'alg' => 'HS256',
+                'typ' => 'JWT'
+            ],
+            [
+                'id' => $user->id
+            ],
+            'secret'
+        );
+        $user->token = $jwt;
         $user->save();
         return response()->json([
             'status' => 'success',
             'message' => 'login success',
             'data' => $user
         ], 200);
+    }
+
+
+    private function base64url_encode($data)
+    {
+        $base64 = base64_encode($data);
+        $base64url = strtr($base64, '+/', '-_');
+        return rtrim($base64url, '=');
+    }
+
+    private function sign($header, $payload, $secret)
+    {
+        $signature = hash_hmac('sha256', "$header.$payload", $secret, true);
+        return $this->base64url_encode($signature);
+    }
+
+    private function jwt($header, $payload, $secret)
+    {
+        $header_json = json_encode($header);
+        $payload_json = json_encode($payload);
+        $header_base64 = $this->base64url_encode($header_json);
+        $payload_base64 = $this->base64url_encode($payload_json);
+        $signature = $this->sign($header_base64, $payload_base64, $secret);
+        return "$header_base64.$payload_base64.$signature";
     }
 }
