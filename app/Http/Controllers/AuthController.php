@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
@@ -42,6 +43,8 @@ class AuthController extends Controller
                 'message' => 'wrong password'
             ], 400);
         }
+        $user->token = Str::random(36);
+        $user->save();
         return response()->json([
             'status' => 'success',
             'message' => 'login success',
