@@ -24,4 +24,28 @@ class AuthController extends Controller
             'data' => $user
         ], 201);
     }
+
+    public function login(Request $request)
+    {
+        $email = $request->email;
+        $password = $request->password;
+        $user = User::where('email', $email)->first();
+        if (!$user) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'user not found'
+            ], 404);
+        }
+        if (!Hash::check($password, $user->password)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'wrong password'
+            ], 400);
+        }
+        return response()->json([
+            'status' => 'success',
+            'message' => 'login success',
+            'data' => $user
+        ], 200);
+    }
 }
